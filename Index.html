@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego del Ahorcado</title>
+    
+    <!-- Google Fonts para un estilo más moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos CSS */
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .screen {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #2196F3;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            margin: 10px;
+        }
+
+        button:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .start-btn, .add-word-btn {
+            background-color: #4CAF50;
+        }
+
+        .start-btn:hover, .add-word-btn:hover {
+            background-color: #45a049;
+        }
+
+        .delete-btn {
+            background-color: #f44336;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .back-menu-btn {
+            background-color: #666;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .back-menu-btn:hover {
+            background-color: #555;
+        }
+
+        #game-screen .progress {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+
+        .word-display {
+            font-size: 2.5rem;
+            letter-spacing: 0.8rem;
+            margin: 20px 0;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .word-gap {
+            display: inline-block;
+            width: 2.5rem;
+        }
+
+        /* --- ESTILO PARA EL CONTENEDOR DE LA PISTA --- */
+        .hint-container {
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #hint-btn {
+            background-color: #FF9800; /* Color naranja para la pista */
+            font-size: 0.9rem;
+            padding: 8px 20px;
+        }
+        #hint-btn:hover:not(:disabled) {
+            background-color: #e68900;
+        }
+        #hint-btn:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        #hint-display {
+            margin-top: 10px;
+            font-style: italic;
+            color: #ccc;
+            font-size: 1rem;
+            max-width: 80%;
+        }
+
+        /* --- DISEÑO DEL TECLADO CON RETROALIMENTACIÓN --- */
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, 55px);
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 25px;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+        }
+
+        .letter-btn {
+            background-color: #1e1e1e;
+            color: #a0a0a0;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            border: none;
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+            cursor: pointer;
+            box-shadow: 6px 6px 12px #161616, -6px -6px 12px #262626;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .letter-btn:hover:not(:disabled):not(.correct-letter):not(.incorrect-letter) {
+            color: #2196F3;
+            box-shadow: inset 6px 6px 12px #161616, inset -6px -6px 12px #262626;
+            transform: scale(0.98);
+        }
+
+        .letter-btn:active:not(:disabled):not(.correct-letter):not(.incorrect-letter) {
+            box-shadow: inset 6px 6px 12px #161616, inset -6px -6px 12px #262626;
+            transform: scale(0.95);
+        }
+        
+        .letter-btn.correct-letter {
+            background-color: #2a4a3a;
+            color: #8bc34a;
+            box-shadow: inset 4px 4px 8px #1a2a1a, inset -4px -4px 8px #3a5a4a;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .letter-btn.incorrect-letter {
+            background-color: #4a2a2a;
+            color: #e57373;
+            box-shadow: inset 4px 4px 8px #3a1a1a, inset -4px -4px 8px #5a3a3a;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .hangman-drawing {
+            margin: 20px 0;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+        }
+
+        .modal-content p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .word-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .word-form input {
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: white;
+            font-size: 1rem;
+        }
+
+        .word-list {
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        .word-item {
+            background-color: #2a2a2a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .word-item p {
+            margin: 0;
+        }
+        .word-item .word-english { font-weight: bold; color: #4CAF50; }
+        .word-item .word-definition { font-style: italic; color: #ccc; }
+        .word-item .word-spanish { color: #2196F3; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Pantalla de Inicio -->
+    <div id="start-screen" class="screen">
+        <h1>Juego del Ahorcado</h1>
+        <p>¡Intenta adivinar la palabra o frase letra por letra!</p>
+        <button class="start-btn" id="start-game-btn">INICIAR JUEGO</button>
+        <button id="manage-words-btn">ADMINISTRAR PALABRAS</button>
+    </div>
+
+    <!-- Pantalla de Juego -->
+    <div id="game-screen" class="screen hidden">
+        <button class="back-menu-btn" id="back-to-menu-from-game-btn">VOLVER AL MENÚ</button>
+        
+        <h1>Ahorcado</h1>
+        <p style="color: #ccc; font-size: 1rem; margin-top: 0;">Adivina la palabra o frase</p>
+        <div class="progress">
+            Palabra <span id="current-word-num">1</span> de <span id="total-words-num">20</span>
+        </div>
+        <div class="hangman-drawing">
+            <canvas id="hangman-canvas" width="200" height="200"></canvas>
+        </div>
+        
+        <!-- CONTENEDOR PARA LA PISTA -->
+        <div class="hint-container">
+            <button id="hint-btn">OBTENER PISTA</button>
+            <p id="hint-display" class="hidden"></p>
+        </div>
+
+        <div class="word-display" id="word-display"></div>
+        <div class="keyboard" id="keyboard"></div>
+    </div>
+
+    <!-- Pantalla de Administración de Palabras -->
+    <div id="manage-words-screen" class="screen hidden">
+        <h2>Administrar Palabras</h2>
+        <div class="word-form">
+            <input type="text" id="word-input" placeholder="Palabra o frase en inglés (ej. RESTAURANT)" required>
+            <input type="text" id="definition-input" placeholder="Definición / Pista (ej. A place where meals are served)" required>
+            <input type="text" id="translation-input" placeholder="Traducción al español (ej. Restaurante)" required>
+            <button class="add-word-btn" id="add-word-btn">Añadir Palabra</button>
+        </div>
+        <h3>Mis Palabras</h3>
+        <div class="word-list" id="word-list-container">
+            <p style="text-align: center; color: #888;">No has añadido ninguna palabra personalizada.</p>
+        </div>
+        <button id="back-to-menu-btn">VOLVER AL MENÚ</button>
+    </div>
+
+    <!-- Modal de Resultado de Ronda -->
+    <div id="result-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="result-title"></h3>
+            <p>La palabra era: <strong id="result-word"></strong></p>
+            <p><strong>Pista:</strong> <span id="result-definition"></span></p>
+            <p><strong>Traducción:</strong> <span id="result-translation"></span></p>
+            <button id="next-round-btn">Siguiente</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+        // --- GESTIÓN DE PANTALLAS ---
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const manageWordsScreen = document.getElementById('manage-words-screen');
+        const resultModal = document.getElementById('result-modal');
+
+        function showScreen(screenToShow) {
+            [startScreen, gameScreen, manageWordsScreen].forEach(screen => screen.classList.add('hidden'));
+            screenToShow.classList.remove('hidden');
+        }
+
+        // --- GESTIÓN DE PALABRAS ---
+        // NUEVA BASE DE DATOS DE PALABRAS
+        const defaultWords = [
+            {
+                english: "OVERCROWDING",
+                definition: "A situation where too many people occupy a space at the same time, exceeding its comfortable capacity.",
+                spanish: "Sobrepoblación / Congestión"
+            },
+            {
+                english: "PEAK HOURS",
+                definition: "Time periods with the highest concentration of people using a service.",
+                spanish: "Horas pico"
+            },
+            {
+                english: "WAITING TIME",
+                definition: "The amount of time a person spends waiting to receive a service, such as food.",
+                spanish: "Tiempo de espera"
+            },
+            {
+                english: "FLOW OF MOVEMENT",
+                definition: "How people move through a space, including how efficiently lines and paths are organized.",
+                spanish: "Flujo de movimiento"
+            },
+            {
+                english: "QUEUE MANAGEMENT",
+                definition: "Organizing and controlling lines to reduce congestion and waiting time.",
+                spanish: "Gestión de filas"
+            },
+            {
+                english: "CAPACITY",
+                definition: "The maximum number of people a space can handle comfortably.",
+                spanish: "Capacidad"
+            },
+            {
+                english: "SERVICE EFFICIENCY",
+                definition: "How quickly and effectively a service (like serving food) is completed.",
+                spanish: "Eficiencia del servicio"
+            },
+            {
+                english: "STAFFING",
+                definition: "The number of staff working in a location to serve customers.",
+                spanish: "Dotación de personal"
+            },
+            {
+                english: "ORDER AHEAD SYSTEM",
+                definition: "A system that allows customers to place an order before arriving, such as through an app like Grubhub.",
+                spanish: "Sistema de pedido anticipado"
+            },
+            {
+                english: "ESTIMATED TIME OF ARRIVAL",
+                definition: "The projected time when something (like an order) will be ready.",
+                spanish: "Tiempo estimado de entrega"
+            },
+            {
+                english: "LINE CUTTING",
+                definition: "Jumping ahead of others in line, disrupting order and fairness.",
+                spanish: "Colarse en la fila"
+            },
+            {
+                english: "CUSTOMER FRUSTRATION",
+                definition: "Negative emotions caused by delays, long waits, or poor service.",
+                spanish: "Frustración del usuario"
+            }
+        ];
+
+        function getWords() {
+            try {
+                const savedWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
+                return [...defaultWords, ...savedWords];
+            } catch (error) {
+                console.error("Error al cargar palabras desde localStorage.", error);
+                return [...defaultWords];
+            }
+        }
+
+        function saveCustomWord(word) {
+            try {
+                const customWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
+                customWords.push(word);
+                localStorage.setItem('hangmanWords', JSON.stringify(customWords));
+            } catch (error) {
+                console.error("Error al guardar la palabra en localStorage.", error);
+                alert("No se pudo guardar la palabra. Es posible que tu navegador tenga el almacenamiento local desactivado.");
+            }
+        }
+
+        function deleteCustomWord(index) {
+            try {
+                const customWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
+                customWords.splice(index, 1);
+                localStorage.setItem('hangmanWords', JSON.stringify(customWords));
+                renderWordList();
+            } catch (error) {
+                console.error("Error al eliminar la palabra.", error);
+            }
+        }
+
+        // --- LÓGICA DEL JUEGO ---
+        let allWords = [];
+        let currentWordIndex = 0;
+        let currentWordObject = null;
+        let guessedLetters = [];
+        let remainingGuesses = 6;
+
+        const canvas = document.getElementById('hangman-canvas');
+        const ctx = canvas.getContext('2d');
+        const wordDisplay = document.getElementById('word-display');
+        const keyboard = document.getElementById('keyboard');
+        const currentWordNumSpan = document.getElementById('current-word-num');
+        const totalWordsNumSpan = document.getElementById('total-words-num');
+        
+        const hintBtn = document.getElementById('hint-btn');
+        const hintDisplay = document.getElementById('hint-display');
+
+        function startGame() {
+            allWords = getWords();
+            if (allWords.length === 0) {
+                alert("No hay palabras disponibles. Por favor, añade algunas.");
+                showScreen(manageWordsScreen);
+                return;
+            }
+            
+            for (let i = allWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allWords[i], allWords[j]] = [allWords[j], allWords[i]];
+            }
+
+            currentWordIndex = 0;
+            totalWordsNumSpan.textContent = allWords.length;
+            showScreen(gameScreen);
+            setupNewWord();
+        }
+
+        function setupNewWord() {
+            if (currentWordIndex >= allWords.length) {
+                alert('¡Has completado todas las palabras! Gracias por jugar.');
+                showScreen(startScreen);
+                return;
+            }
+
+            currentWordObject = allWords[currentWordIndex];
+            guessedLetters = [];
+            remainingGuesses = 6;
+            currentWordNumSpan.textContent = currentWordIndex + 1;
+            
+            hintDisplay.textContent = '';
+            hintDisplay.classList.add('hidden');
+            hintBtn.disabled = false;
+            
+            updateWordDisplay();
+            createKeyboard();
+            drawHangman(0);
+        }
+
+        function updateWordDisplay() {
+            const display = currentWordObject.english.split('').map(letter => {
+                if (letter === ' ') {
+                    return '<span class="word-gap"></span>';
+                }
+                return guessedLetters.includes(letter) ? letter : '_';
+            }).join(' ');
+            
+            wordDisplay.innerHTML = display;
+        }
+
+        function createKeyboard() {
+            keyboard.innerHTML = '';
+            for (let i = 65; i <= 90; i++) {
+                const letter = String.fromCharCode(i);
+                const btn = document.createElement('button');
+                btn.textContent = letter;
+                btn.className = 'letter-btn';
+                btn.id = `letter-${letter}`;
+                btn.onclick = () => guessLetter(letter);
+                keyboard.appendChild(btn);
+            }
+        }
+
+        function guessLetter(letter) {
+            if (guessedLetters.includes(letter)) return;
+            
+            guessedLetters.push(letter);
+            const btn = document.getElementById(`letter-${letter}`);
+            btn.disabled = true;
+
+            if (currentWordObject.english.includes(letter)) {
+                btn.classList.add('correct-letter');
+                updateWordDisplay();
+                
+                const uniqueLetters = [...new Set(currentWordObject.english.replace(/ /g, '').split(''))];
+                if (uniqueLetters.every(l => guessedLetters.includes(l))) {
+                    endRound(true);
+                }
+            } else {
+                btn.classList.add('incorrect-letter');
+                remainingGuesses--;
+                drawHangman(6 - remainingGuesses);
+                if (remainingGuesses === 0) {
+                    endRound(false);
+                }
+            }
+        }
+
+        function drawHangman(wrongGuesses) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 3;
+            
+            if (wrongGuesses >= 1) { ctx.beginPath(); ctx.moveTo(20, 180); ctx.lineTo(100, 180); ctx.stroke(); }
+            if (wrongGuesses >= 2) { ctx.beginPath(); ctx.moveTo(50, 180); ctx.lineTo(50, 20); ctx.stroke(); }
+            if (wrongGuesses >= 3) { ctx.beginPath(); ctx.moveTo(50, 20); ctx.lineTo(130, 20); ctx.stroke(); }
+            if (wrongGuesses >= 4) { ctx.beginPath(); ctx.moveTo(130, 20); ctx.lineTo(130, 50); ctx.stroke(); }
+            if (wrongGuesses >= 5) { ctx.beginPath(); ctx.arc(130, 65, 15, 0, Math.PI * 2); ctx.stroke(); }
+            if (wrongGuesses >= 6) {
+                ctx.beginPath(); ctx.moveTo(130, 80); ctx.lineTo(130, 120); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(130, 90); ctx.lineTo(110, 110); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(130, 90); ctx.lineTo(150, 110); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(130, 120); ctx.lineTo(110, 150); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(130, 120); ctx.lineTo(150, 150); ctx.stroke();
+            }
+        }
+
+        function endRound(won) {
+            const resultTitle = document.getElementById('result-title');
+            const resultWord = document.getElementById('result-word');
+            const resultDefinition = document.getElementById('result-definition');
+            const resultTranslation = document.getElementById('result-translation');
+
+            resultTitle.textContent = won ? '¡Correcto!' : '¡Fin del Juego!';
+            resultTitle.style.color = won ? '#4CAF50' : '#f44336';
+            resultWord.textContent = currentWordObject.english;
+            resultDefinition.textContent = currentWordObject.definition;
+            resultTranslation.textContent = currentWordObject.spanish;
+            
+            resultModal.classList.remove('hidden');
+        }
+
+        // --- LÓGICA DE ADMINISTRACIÓN DE PALABRAS ---
+        function renderWordList() {
+            const container = document.getElementById('word-list-container');
+            let customWords = [];
+            try {
+                customWords = JSON.parse(localStorage.getItem('hangmanWords') || '[]');
+            } catch (error) {
+                console.error("No se pudo cargar la lista de palabras para mostrar.", error);
+            }
+
+            if (customWords.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #888;">No has añadido ninguna palabra personalizada.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            customWords.forEach((word, index) => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                item.innerHTML = `
+                    <div>
+                        <p class="word-english">${word.english}</p>
+                        <p class="word-definition">${word.definition}</p>
+                        <p class="word-spanish">${word.spanish}</p>
+                    </div>
+                    <button class="delete-btn" data-index="${index}">Eliminar</button>
+                `;
+                container.appendChild(item);
+
+                const deleteBtn = item.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', () => {
+                    const indexToDelete = parseInt(deleteBtn.dataset.index, 10);
+                    deleteCustomWord(indexToDelete);
+                });
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+        document.getElementById('start-game-btn').addEventListener('click', startGame);
+        document.getElementById('manage-words-btn').addEventListener('click', () => {
+            renderWordList();
+            showScreen(manageWordsScreen);
+        });
+        document.getElementById('back-to-menu-btn').addEventListener('click', () => showScreen(startScreen));
+        document.getElementById('back-to-menu-from-game-btn').addEventListener('click', () => {
+            showScreen(startScreen);
+        });
+
+        document.getElementById('add-word-btn').addEventListener('click', () => {
+            const english = document.getElementById('word-input').value.trim().toUpperCase();
+            const definition = document.getElementById('definition-input').value.trim();
+            const spanish = document.getElementById('translation-input').value.trim();
+
+            if (english && definition && spanish) {
+                saveCustomWord({ english, definition, spanish });
+                document.getElementById('word-input').value = '';
+                document.getElementById('definition-input').value = '';
+                document.getElementById('translation-input').value = '';
+                renderWordList();
+            } else {
+                alert('Por favor, completa todos los campos.');
+            }
+        });
+
+        document.getElementById('next-round-btn').addEventListener('click', () => {
+            resultModal.classList.add('hidden');
+            currentWordIndex++;
+            setupNewWord();
+        });
+
+        hintBtn.addEventListener('click', () => {
+            hintDisplay.textContent = `Pista: ${currentWordObject.definition}`;
+            hintDisplay.classList.remove('hidden');
+            hintBtn.disabled = true;
+        });
+
+        }); // Fin de DOMContentLoaded
+    </script>
+</body>
+</html>
