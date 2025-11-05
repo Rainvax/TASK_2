@@ -28,7 +28,8 @@
             border-radius: 10px;
             padding: 30px;
             width: 90%;
-            max-width: 800px;
+            /* CAMBIO: Interfaz más ancha para acomodar frases largas */
+            max-width: 950px; 
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
@@ -111,11 +112,15 @@
             margin: 20px 0;
             font-weight: bold;
             font-family: 'Courier New', Courier, monospace;
+            /* Añadido para asegurar que las palabras largas no se corten en pantallas pequeñas */
+            word-wrap: break-word; 
+            overflow-wrap: break-word;
         }
 
+        /* CAMBIO: Ajuste del espaciado para mayor flexibilidad */
         .word-gap {
-            display: inline-block;
-            width: 2.5rem;
+            display: inline; /* Ya no necesita ser bloque */
+            margin: 0 1.2rem; /* Usa márgenes en lugar de ancho fijo */
         }
 
         /* --- ESTILO PARA EL CONTENEDOR DE LA PISTA --- */
